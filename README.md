@@ -1,8 +1,3 @@
-```
-npm install
-npm run dev
-```
+# API for ETD in Unpad
 
-```
-open http://localhost:3000
-```
+Internal Use only.
