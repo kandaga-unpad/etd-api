@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "studio": "drizzle-kit studio",
+    "introspect": "drizzle-kit introspect:mysql",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.8.2",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.3",
+    "hono": "^4.1.2",
+    "mysql2": "^3.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "drizzle-kit": "^0.20.14",
+    "tsx": "^3.12.2",
+    "typescript": "^5.4.2"
+  },
+  "type": "module"
+}
