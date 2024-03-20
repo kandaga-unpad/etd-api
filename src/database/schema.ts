@@ -7,7 +7,7 @@ import {
   longtext,
 } from "drizzle-orm/mysql-core";
 
-export const aEtdMetadata = mysqlTable("a_etd_metadata", {
+export const aEtdMetadata = mysqlTable("A_ETD_Metadata", {
   idControl: int("IDControl"),
   fakultas: tinytext("Fakultas"),
   kodeProdi: tinytext("KodeProdi"),
@@ -43,7 +43,7 @@ export const aEtdMetadata = mysqlTable("a_etd_metadata", {
   keywords: tinytext("Keywords"),
 });
 
-export const aEtdPembimbing = mysqlTable("a_etd_pembimbing", {
+export const aEtdPembimbing = mysqlTable("A_ETD_Pembimbing", {
   npm: tinytext("NPM"),
   namaMahasiswa: tinytext("NamaMahasiswa"),
   kodeDosenPembimbing: tinytext("KodeDosenPembimbing"),
@@ -52,7 +52,7 @@ export const aEtdPembimbing = mysqlTable("a_etd_pembimbing", {
   pembimbingKetua: tinyint("PembimbingKetua"),
 });
 
-export const aEtdPenguji = mysqlTable("a_etd_penguji", {
+export const aEtdPenguji = mysqlTable("A_ETD_Penguji", {
   npm: tinytext("NPM"),
   namaMahasiswa: tinytext("NamaMahasiswa"),
   kodeDosenPenguji: tinytext("KodeDosenPenguji"),

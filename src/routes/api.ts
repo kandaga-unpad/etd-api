@@ -23,10 +23,29 @@ api.get("/", (c) => {
 
 api.get("/etd/individu/:npm", async (c) => {
   const npm = c.req.param("npm");
-  const result = await db
+  let metadataList: Record<string, any> = [];
+  let pembimbingList: Record<string, any> = [];
+  let pengujiList: Record<string, any> = [];
+
+  metadataList = await db
     .select()
     .from(schema.aEtdMetadata)
     .where(eq(schema.aEtdMetadata.npm, npm));
+
+  pembimbingList = await db
+    .select()
+    .from(schema.aEtdPembimbing)
+    .where(eq(schema.aEtdPembimbing.npm, npm));
+  pengujiList = await db
+    .select()
+    .from(schema.aEtdPenguji)
+    .where(eq(schema.aEtdPenguji.npm, npm));
+
+  const result = {
+    metadata: metadataList[0],
+    pembimbing: pembimbingList,
+    penguji: pengujiList,
+  };
   return c.json({
     result,
   });
@@ -41,11 +60,21 @@ api.get("etd/fakultas/:kode", async (c) => {
   const fakultas = objFakultas.find((fak) => {
     return fak.singkatan === kode;
   });
-  let results;
+  let results: Record<string, any> = [];
 
   if (page !== undefined && tahun !== undefined && jenjang !== undefined) {
     results = await db
-      .select()
+      .select({
+        npm: schema.aEtdMetadata.npm,
+        author: schema.aEtdMetadata.author,
+        jenjang: schema.aEtdMetadata.jenjang,
+        jenis: schema.aEtdMetadata.jenis,
+        kodeProdi: schema.aEtdMetadata.kodeProdi,
+        prodi: schema.aEtdMetadata.programStudi,
+        fakultas: schema.aEtdMetadata.fakultas,
+        status: schema.aEtdMetadata.status,
+        tahun: schema.aEtdMetadata.tahun,
+      })
       .from(schema.aEtdMetadata)
       .where(
         and(
@@ -58,7 +87,17 @@ api.get("etd/fakultas/:kode", async (c) => {
       .offset(Number(page));
   } else {
     results = await db
-      .select()
+      .select({
+        npm: schema.aEtdMetadata.npm,
+        author: schema.aEtdMetadata.author,
+        jenjang: schema.aEtdMetadata.jenjang,
+        jenis: schema.aEtdMetadata.jenis,
+        kodeProdi: schema.aEtdMetadata.kodeProdi,
+        prodi: schema.aEtdMetadata.programStudi,
+        fakultas: schema.aEtdMetadata.fakultas,
+        status: schema.aEtdMetadata.status,
+        tahun: schema.aEtdMetadata.tahun,
+      })
       .from(schema.aEtdMetadata)
       .where(eq(schema.aEtdMetadata.fakultas, fakultas?.namaFakultas || ""))
       .limit(5);
@@ -77,50 +116,35 @@ api.get("etd/prodi/:kode", async (c) => {
   const tahun = c.req.query("tahun");
   const jenjang = c.req.query("jenjang");
 
-  let results;
+  let results: Record<string, any> = [];
 
-  if (
-    page !== undefined &&
-    tahun !== undefined &&
-    jenjang !== undefined &&
-    limit !== undefined
-  ) {
+  if (page !== undefined && limit !== undefined) {
     results = await db
-      .select()
+      .select({
+        npm: schema.aEtdMetadata.npm,
+        author: schema.aEtdMetadata.author,
+        jenjang: schema.aEtdMetadata.jenjang,
+        jenis: schema.aEtdMetadata.jenis,
+        kodeProdi: schema.aEtdMetadata.kodeProdi,
+        prodi: schema.aEtdMetadata.programStudi,
+        fakultas: schema.aEtdMetadata.fakultas,
+        status: schema.aEtdMetadata.status,
+        tahun: schema.aEtdMetadata.tahun,
+      })
       .from(schema.aEtdMetadata)
-      .where(
-        and(
-          eq(schema.aEtdMetadata.kodeProdi, kode),
-          eq(schema.aEtdMetadata.tahun, Number(tahun)),
-          eq(schema.aEtdMetadata.jenjang, jenjang)
-        )
-      )
-      .limit(Number(limit))
-      .offset(Number(page))
-      .orderBy(asc(schema.aEtdMetadata.npm));
-  } else if (
-    jenjang === undefined &&
-    page !== undefined &&
-    limit !== undefined
-  ) {
-    results = await db
-      .select()
-      .from(schema.aEtdMetadata)
-      .where(
-        and(
-          eq(schema.aEtdMetadata.kodeProdi, kode),
-          eq(schema.aEtdMetadata.jenjang, jenjang!)
-        )
-      )
+      .where(and(eq(schema.aEtdMetadata.kodeProdi, kode)))
       .limit(Number(limit))
       .offset(Number(page))
       .orderBy(asc(schema.aEtdMetadata.npm));
   } else {
-    results = "Not Found";
+    console.log(results);
   }
 
   return c.json({
-    results: results.length > 0 ? results : "Not Found",
+    jenjang,
+    page,
+    limit,
+    results: results?.length > 0 ? results : "Not Found",
   });
 });
 
