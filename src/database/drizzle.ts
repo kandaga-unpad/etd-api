@@ -11,4 +11,12 @@ const connection = await mysql.createConnection({
   database: process.env.DRIZZLE_DATABASE,
 });
 
-export const db = drizzle(connection);
+const poolConnection = mysql.createPool({
+  host: process.env.DRIZZLE_HOST,
+  user: process.env.DRIZZLE_USERNAME,
+  port: Number(process.env.DRIZZLE_PORT),
+  password: process.env.DRIZZLE_PASSWORD,
+  database: process.env.DRIZZLE_DATABASE,
+});
+
+export const db = drizzle(poolConnection);
