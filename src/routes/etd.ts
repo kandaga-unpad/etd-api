@@ -1,6 +1,5 @@
 // Core Import
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 
 // Drizzle Import
 import { db } from "../database/drizzle";
@@ -11,17 +10,16 @@ import { and, asc, count, eq, like } from "drizzle-orm";
 import { objFakultas } from "../utils";
 
 const api = new Hono();
-api.use("/api/*", cors());
 
 api.get("/", (c) => {
   return c.json({
-    apiName: "ETD Unpad API",
+    title: "ETD Unpad Harvesting API",
     developer: "Chrisna Adhi Pranoto",
     purposes: "Migrate Local Repository File to DSpace",
   });
 });
 
-api.get("/etd/individu/:npm", async (c) => {
+api.get("/individu/:npm", async (c) => {
   const npm = c.req.param("npm");
   let metadataList: Record<string, any> = [];
   let pembimbingList: Record<string, any> = [];
@@ -51,7 +49,7 @@ api.get("/etd/individu/:npm", async (c) => {
   });
 });
 
-api.get("etd/fakultas/:kode", async (c) => {
+api.get("/fakultas/:kode", async (c) => {
   const kode = c.req.param("kode");
   const page = c.req.query("page");
   const tahun = c.req.query("tahun");
@@ -109,11 +107,10 @@ api.get("etd/fakultas/:kode", async (c) => {
   });
 });
 
-api.get("etd/prodi/:kode", async (c) => {
+api.get("/prodi/:kode", async (c) => {
   const kode = c.req.param("kode");
   const page = c.req.query("page");
   const limit = c.req.query("limit");
-  const jenjang = c.req.query("jenjang");
 
   let results: Record<string, any> = [];
   const numberResults = await db
