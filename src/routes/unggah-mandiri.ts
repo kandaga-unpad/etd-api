@@ -1,7 +1,13 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import login from "../utils/login-dspace";
+import {
+  postMetadata,
+  createWorkspaceItems,
+  dummyObject,
+} from "../utils/post-metadata";
 import fs from "fs";
+import { jenjang } from "../utils/jenjang";
 
 const api = new Hono();
 
@@ -24,20 +30,24 @@ api.post("/", async (c) => {
 
   await login(c);
 
-  const getFileMetadata = await fetch(
-    "https://repository.unpad.ac.id/server/api/core/items",
-    {
-      method: "GET",
-      credentials: "include",
-      headers: new Headers({
-        Authorization: "Bearer " + cookie.token,
-        "X-XSRF-TOKEN": cookie.dspace,
-      }),
-    }
-  );
-  const results = await getFileMetadata.json();
+  const cookieValue = {
+    token: cookie.token,
+    dspace: cookie.dspace,
+  };
 
-  console.log(results);
+  if (cookie.dspace) {
+    const getCollection = jenjang.find(
+      (item) => item.kodeProdi === Number(body.result.metadata.kodeProdi)
+    );
+    const createItem = await createWorkspaceItems(
+      cookieValue,
+      getCollection?.kodeProdi
+    );
+    console.log(createItem);
+    await postMetadata(cookie.dspace, dummyObject);
+  } else {
+    console.log("cookie is loaded");
+  }
 
   const { npm } = body.result.metadata;
 

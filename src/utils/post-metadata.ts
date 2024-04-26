@@ -73,7 +73,12 @@ const dummyObject = {
   },
 };
 
-async function downloadFile(file: string, path: string, metadata: any) {
+async function downloadFile(
+  file: string,
+  objName: string,
+  path: string,
+  metadata: any
+) {
   const fileName = `${
     metadata.jenjang === "Sarjana"
       ? "S1"
@@ -90,9 +95,9 @@ async function downloadFile(file: string, path: string, metadata: any) {
       : metadata.jenjang === "Diploma IV"
       ? "DIPLOMA"
       : "Unpad"
-  }-${metadata.tahun}-${metadata.npm}-${file.replace("file", "")}`;
+  }-${metadata.tahun}-${metadata.npm}-${objName.replace("file", "")}.pdf`;
 
-  const buildUrl = metadata.linkPath + "/" + file;
+  const buildUrl = metadata.linkPath + file;
   const getFile = await fetch(buildUrl);
 
   if (getFile.ok && getFile.body) {
@@ -105,13 +110,68 @@ async function downloadFile(file: string, path: string, metadata: any) {
     });
     const body = getFile.body;
     await body.pipeTo(stream);
+    console.log(`File ${fileName} downloaded to ${path}`);
   }
 
-  console.log(`File ${fileName} downloaded to ${path}`);
+  return fileName;
 }
 
-async function postMetadata() {
-  await downloadFile("", "", "");
+async function createWorkspaceItems(
+  cookie: { token: string; dspace: string },
+  collection: number | undefined
+) {
+  const getCollection = await fetch(
+    "https://repository.unpad.ac.id/server/api/submission/workspaceitems?owningCollection=" +
+      String(collection),
+    {
+      method: "POST",
+      credentials: "include",
+      headers: new Headers({
+        Accept: "*/*",
+        Authorization: "Bearer " + cookie.token,
+        "X-XSRF-TOKEN": cookie.dspace,
+        "Content-Type": "application/json",
+      }),
+    }
+  );
+  const response = await getCollection.json();
+  return response?._data?.id;
 }
 
-export { postMetadata };
+async function postMetadata(cookie: string, object: Record<string, any>) {
+  console.log(cookie);
+  const individualData = object.result.metadata;
+  const addingMetadata = {
+    author: individualData.author,
+  };
+
+  let fileList: string[] = [];
+
+  for (const listData in individualData) {
+    if (listData.includes("file")) {
+      if (individualData[listData] !== null) {
+        const fileName = await downloadFile(
+          individualData[listData],
+          listData,
+          `./tmp/`,
+          individualData
+        );
+        fileList.push(fileName);
+      }
+    }
+  }
+
+  for (const file of fileList) {
+    console.log(fs.existsSync("./tmp/" + file) ? "Exists" : "Doesn't Exists");
+    if (fs.existsSync("./tmp/" + file)) {
+      const formData = new FormData();
+      formData.append("file", "./tmp/" + file);
+
+      await fetch(
+        "https://repository.unpad.ac.id/server/api/submission/workspaceitems/"
+      );
+    }
+  }
+}
+
+export { postMetadata, createWorkspaceItems, dummyObject };
