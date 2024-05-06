@@ -4,11 +4,11 @@ import { cors } from "hono/cors";
 import { prettyJSON } from "hono/pretty-json";
 import { swaggerUI } from "@hono/swagger-ui";
 
-import { listProdi } from "./utils";
+import { listProdi } from "./utils/index";
 
-import etd from "./routes/etd.ts";
-import unggahMandiri from "./routes/unggah-mandiri.ts";
-import apiSpec from "./routes/api-spec.ts";
+import etd from "./routes/etd";
+import unggahMandiri from "./routes/unggah-mandiri";
+import apiSpec from "./routes/api-spec";
 
 const app = new Hono();
 
@@ -21,6 +21,7 @@ app.get("/", (c) => {
     dev: "Kandaga Unpad",
   });
 });
+
 app.get("/api/list-prodi", (c) => {
   return c.json({
     list: listProdi,

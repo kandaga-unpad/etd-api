@@ -2,6 +2,9 @@ import { Context, Env } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { BlankInput } from "hono/types";
 
+const username = process.env.DSPACE_USERNAME as string;
+const password = process.env.DSPACE_PASSWORD as string;
+
 export default async function loginDSpace(
   context: Context<any, any, {}> | Context<Env, "/", BlankInput>
 ) {
@@ -19,14 +22,13 @@ export default async function loginDSpace(
         if (!cookie.token) {
           await fetch("https://repository.unpad.ac.id/server/api/authn/login", {
             method: "POST",
-            credentials: "include",
             headers: new Headers({
               Accept: "*/*",
               "X-XSRF-TOKEN": cookie.dspace,
               "Content-Type": "application/x-www-form-urlencoded",
               Cookie: "DSPACE-XSRF-COOKIE=" + cookie.dspace,
             }),
-            body: "user=perpustakaan%40unpad.ac.id&password=Kandaga2024",
+            body: `user=${username}&password=${password}`,
           }).then((loginValue) => {
             if (loginValue.headers.get("DSPACE-XSRF-TOKEN") !== null) {
               setCookie(
@@ -35,13 +37,31 @@ export default async function loginDSpace(
                 loginValue.headers.get("DSPACE-XSRF-TOKEN") ?? ""
               );
             }
+
             setCookie(
               context,
               "token",
               loginValue.headers.get("Authorization")?.split(" ").at(1) ?? ""
             );
+
+            return {
+              status: "ok",
+              msg: "successfully added token",
+              dspaceCookie: loginValue.headers.get("DSPACE-XSRF-TOKEN"),
+              dspaceToken: loginValue.headers
+                .get("Authorization")
+                ?.split(" ")
+                .at(1),
+            };
           });
         }
       });
+  } else {
+    return {
+      status: "done",
+      msg: "Token already added on cookie",
+      dspaceCookie: cookie.newdspace,
+      dspaceToken: cookie.token,
+    };
   }
 }

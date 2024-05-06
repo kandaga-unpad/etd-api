@@ -7,7 +7,7 @@ import * as schema from "../database/schema";
 import { and, asc, count, eq, like } from "drizzle-orm";
 
 // Utils Import
-import { objFakultas } from "../utils";
+import { objFakultas } from "../utils/index";
 
 const api = new Hono();
 
@@ -144,7 +144,7 @@ api.get("/prodi/:kode", async (c) => {
   }
 
   return c.json({
-    jenjang: results[0].jenjang,
+    jenjang: results[0]?.jenjang,
     fakultas: fakultas?.namaFakultas,
     total: numberResults[0].count,
     page,

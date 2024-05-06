@@ -1,77 +1,9 @@
-import fs from "fs";
+import fs from "node:fs";
+import { uploadMetadataValue } from "./upload-metadata";
+import { uploadFiles } from "./upload-files";
+import { rimraf, rimrafSync } from "rimraf";
 
-const dummyObject = {
-  result: {
-    metadata: {
-      idControl: 47401,
-      fakultas: "Ilmu Komunikasi",
-      kodeProdi: "210810",
-      programStudi: "Perpustakaan dan Sains Informasi",
-      jenjang: "Sarjana",
-      jenis: "Skripsi",
-      npm: "210210160084",
-      author: "CHRISNA ADHI PRANOTO",
-      tglUpload: "2021-03-08 21:51:04",
-      tahun: 2021,
-      stPublikasi: 1,
-      idRepoLama: 43124,
-      status: "Lulus",
-      linkPath: "https://repository.unpad.ac.id/thesis/210210/2016/",
-      fileCover: "210210160084_c_5413.pdf",
-      fileAbstrak: "210210160084_a_2592.pdf",
-      fileDaftarIsi: "210210160084_d_5831.pdf",
-      fileBab1: "210210160084_1_8741.pdf",
-      fileBab2: "210210160084_2_4731.pdf",
-      fileBab3: "210210160084_3_4632.pdf",
-      fileBab4: "210210160084_4_2878.pdf",
-      fileBab5: "210210160084_5_1961.pdf",
-      fileBab6: null,
-      fileLampiran: "210210160084_l_3377.pdf",
-      filePustaka: "210210160084_k_2588.pdf",
-      fileSurat: "210210160084_s_4206.pdf",
-      fileSuratIsi: "210210160084_i_8771.pdf",
-      filePengesahan: null,
-      judul:
-        "RANCANG BANGUN MEDIA INFORMASI UNTUK PERPUSTAKAAN PUSAT UNIVERSITAS PADJADJARAN:Studi Kaji Tindak (Action Research) Rancang Bangun Media Sosial & Website di Perpustakaan Pusat Universitas Padjadjaran",
-      abstrak:
-        "Perpustakaan merupakan sebuah lembaga yang menjadi pusat dari sumber bahan pustaka ilmiah dan informasi, sehingga sudah menjadi hal yang sangat penting bagi Perpustakaan untuk memiliki media informasi yang sangat adaptif dan efektif untuk digunakan dalam proses diseminasi dan publikasi informasi. Perpustakaan Pusat UNPAD memiliki beberapa saluran media informasi namun belum dimanfaatkan secara maksimal. Maka dari itu penulis menyusun penelitian ini dengan metode kaji tindak, yang dimana penulis langsung berpartisipasi secara aktif merancang dan membangun media informasi yang diperlukan serta dapat dimanfaatkan oleh Perpustakaan Pusat UNPAD untuk menunjang kegiatan layanan perpustakaan. Proses perancangan yang dilakukan memanfaatkan beberapa teori media informasi yang menitiberatkan pada konsep pemilihan media populer yang paling banyak digunakan oleh masyarakat dan alur kerja yang dinamis serta integratif untuk pengelola agar dapat memenuhi kegiatan operasional layanan perpustakaan. Media yang dipilih dan digunakan adalah Media Sosial (LINE, Intagram dan Twitter) serta Situs Web berbasis Wordpress dan LiveChat. Membangun Media Informasi yang komprehensif dan dapat digunakan dalam jangka waktu yang panjang membutuhkan waktu serta proses kebijakan yang ketat dalam hal pengoperasiannya, sehingga diperlukan kerjasama dari berbagai pihak agar proses publikasi dan diseminasi informasi dapat dilakukan dengan baik dan tepat sasaran.",
-      title:
-        "RANCANG BANGUN MEDIA INFORMASI UNTUK PERPUSTAKAAN PUSAT UNIVERSITAS PADJADJARAN:Studi Kaji Tindak (Action Research) Rancang Bangun Media Sosial & Website di Perpustakaan Pusat Universitas Padjadjaran",
-      abstract:
-        "Perpustakaan merupakan sebuah lembaga yang menjadi pusat dari sumber bahan pustaka ilmiah dan informasi, sehingga sudah menjadi hal yang sangat penting bagi Perpustakaan untuk memiliki media informasi yang sangat adaptif dan efektif untuk digunakan dalam proses diseminasi dan publikasi informasi. Perpustakaan Pusat UNPAD memiliki beberapa saluran media informasi namun belum dimanfaatkan secara maksimal. Maka dari itu penulis menyusun penelitian ini dengan metode kaji tindak, yang dimana penulis langsung berpartisipasi secara aktif merancang dan membangun media informasi yang diperlukan serta dapat dimanfaatkan oleh Perpustakaan Pusat UNPAD untuk menunjang kegiatan layanan perpustakaan. Proses perancangan yang dilakukan memanfaatkan beberapa teori media informasi yang menitiberatkan pada konsep pemilihan media populer yang paling banyak digunakan oleh masyarakat dan alur kerja yang dinamis serta integratif untuk pengelola agar dapat memenuhi kegiatan operasional layanan perpustakaan. Media yang dipilih dan digunakan adalah Media Sosial (LINE, Intagram dan Twitter) serta Situs Web berbasis Wordpress dan LiveChat. Membangun Media Informasi yang komprehensif dan dapat digunakan dalam jangka waktu yang panjang membutuhkan waktu serta proses kebijakan yang ketat dalam hal pengoperasiannya, sehingga diperlukan kerjasama dari berbagai pihak agar proses publikasi dan diseminasi informasi dapat dilakukan dengan baik dan tepat sasaran.",
-      keywords:
-        "Media Informasi, Pengembangan Media, Layanan Perpustakaan Digital",
-    },
-    pembimbing: [
-      {
-        npm: "210210160084",
-        namaMahasiswa: "CHRISNA ADHI PRANOTO",
-        kodeDosenPembimbing: "K03A10019",
-        namaDosen: "Edwin Rizal ",
-        nidnDosen: "0008016801",
-        pembimbingKetua: 1,
-      },
-      {
-        npm: "210210160084",
-        namaMahasiswa: "CHRISNA ADHI PRANOTO",
-        kodeDosenPembimbing: "K03A10037",
-        namaDosen: "Rully Khairul Anwar ",
-        nidnDosen: "0024027504",
-        pembimbingKetua: 0,
-      },
-    ],
-    penguji: [
-      {
-        npm: "210210160084",
-        namaMahasiswa: "CHRISNA ADHI PRANOTO",
-        kodeDosenPenguji: "K03A10019",
-        namaDosenPenguji: "Edwin Rizal ",
-        dosenNidn: "0008016801",
-        pengujiKetua: 1,
-      },
-    ],
-  },
-};
+const baseUrl = process.env.DSPACE_URL as string;
 
 async function downloadFile(
   file: string,
@@ -102,7 +34,7 @@ async function downloadFile(
 
   if (getFile.ok && getFile.body) {
     console.log("Writing to file: ", fileName);
-    const downloadWriteStream = fs.createWriteStream(path + fileName);
+    const downloadWriteStream = fs.createWriteStream(`${path}/${fileName}`);
     const stream = new WritableStream({
       write(chunk) {
         downloadWriteStream.write(chunk);
@@ -118,34 +50,153 @@ async function downloadFile(
 
 async function createWorkspaceItems(
   cookie: { token: string; dspace: string },
-  collection: number | undefined
+  collection: string | undefined
 ) {
   const getCollection = await fetch(
-    "https://repository.unpad.ac.id/server/api/submission/workspaceitems?owningCollection=" +
+    `${baseUrl}/submission/workspaceitems?owningCollection=` +
       String(collection),
     {
       method: "POST",
-      credentials: "include",
       headers: new Headers({
         Accept: "*/*",
         Authorization: "Bearer " + cookie.token,
         "X-XSRF-TOKEN": cookie.dspace,
         "Content-Type": "application/json",
+        Cookie: "DSPACE-XSRF-COOKIE=" + cookie.dspace,
       }),
     }
   );
+
   const response = await getCollection.json();
-  return response?._data?.id;
+
+  return {
+    workspaceid: response?.id,
+    uid: response?._embedded.item.id,
+  };
 }
 
-async function postMetadata(cookie: string, object: Record<string, any>) {
-  console.log(cookie);
+async function postMetadata(
+  cookie: { token: string; dspace: string },
+  object: Record<string, any>,
+  itemId: number
+) {
   const individualData = object.result.metadata;
+  const pembimbing = object.result.pembimbing;
+
+  let splitKeyword: Object[] = [];
+  let pembimbingValue: Object[] = [];
+
+  individualData.keywords.split(",").forEach((item: string) => {
+    splitKeyword.push({
+      value: item,
+      language: "id_ID",
+      authority: null,
+      confidence: -1,
+    });
+  });
+
+  pembimbing.forEach((item: Record<string, any>) => {
+    pembimbingValue.push({
+      value: item.namaDosen,
+      language: "id_ID",
+      authority: null,
+      confidence: -1,
+    });
+  });
+
   const addingMetadata = {
-    author: individualData.author,
+    author: {
+      path: "/sections/traditionalpageone/dc.contributor.author",
+      value: [
+        {
+          value: individualData.author,
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
+    title: {
+      path: "/sections/traditionalpageone/dc.title",
+      value: [
+        {
+          value: individualData.title,
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
+    abstract: {
+      path: "/sections/traditionalpagetwo/dc.description.abstract",
+      value: [
+        {
+          value: individualData.abstract,
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
+    bahasa: {
+      path: "/sections/traditionalpageone/dc.language.iso",
+      value: [
+        {
+          value: "id",
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
+    subject: {
+      path: "/sections/traditionalpagetwo/dc.subject",
+      value: splitKeyword,
+    },
+    issued: {
+      path: "/sections/traditionalpageone/dc.date.issued",
+      value: [
+        {
+          value: individualData.tglUpload.split(" ").at(0),
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
+    advisor: {
+      path: "/sections/traditionalpageone/dc.contributor.advisor",
+      value: pembimbingValue,
+    },
+    handle: {
+      path: "/sections/traditionalpageone/dc.identifier.uri",
+      value: [
+        {
+          value: `https://repository.unpad.ac.id/handle/kandaga/${individualData.npm}`,
+          language: "id_ID",
+          authority: null,
+          confidence: -1,
+        },
+      ],
+    },
   };
 
-  let fileList: string[] = [];
+  await uploadMetadataValue(addingMetadata, itemId, cookie).then(async () => {
+    await fetch(`${baseUrl}/submission/workspaceitems/${itemId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: new Headers({
+        Accept: "*/*",
+        Authorization: "Bearer " + cookie.token,
+        "X-XSRF-TOKEN": cookie.dspace ?? "",
+        Cookie: "DSPACE-XSRF-COOKIE=" + cookie.dspace,
+        "Content-Type": "application/json",
+      }),
+      body: `[{ "op": "add", "path": "/sections/license/granted", "value": true}]`,
+    });
+  });
+
+  let fileList: any[] = [];
 
   for (const listData in individualData) {
     if (listData.includes("file")) {
@@ -153,25 +204,73 @@ async function postMetadata(cookie: string, object: Record<string, any>) {
         const fileName = await downloadFile(
           individualData[listData],
           listData,
-          `./tmp/`,
+          `./tmp/${individualData.npm}`,
           individualData
         );
-        fileList.push(fileName);
+        if (fileName) {
+          fileList.push(fileName);
+        }
       }
     }
   }
 
-  for (const file of fileList) {
-    console.log(fs.existsSync("./tmp/" + file) ? "Exists" : "Doesn't Exists");
-    if (fs.existsSync("./tmp/" + file)) {
-      const formData = new FormData();
-      formData.append("file", "./tmp/" + file);
-
-      await fetch(
-        "https://repository.unpad.ac.id/server/api/submission/workspaceitems/"
-      );
+  const getMetadataRepo = await fetch(
+    baseUrl + `/submission/workspaceitems/${itemId}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: new Headers({
+        Accept: "*/*",
+        Authorization: "Bearer " + cookie.token,
+        "X-XSRF-TOKEN": cookie.dspace ?? "",
+        Cookie: "DSPACE-XSRF-COOKIE=" + cookie.dspace,
+        "Content-Type": "application/json",
+      }),
     }
+  );
+  const getData = await getMetadataRepo.json();
+
+  if (getData) {
+    setTimeout(async () => {
+      await uploadFiles(
+        baseUrl,
+        fileList,
+        cookie,
+        itemId,
+        individualData.npm
+      ).then(async () => {
+        await fetch(`${baseUrl}/workflow/workflowitems`, {
+          method: "POST",
+          credentials: "include",
+          headers: new Headers({
+            Accept: "*/*",
+            Authorization: "Bearer " + cookie.token,
+            "X-XSRF-TOKEN": cookie.dspace ?? "",
+            Cookie: "DSPACE-XSRF-COOKIE=" + cookie.dspace,
+            "Content-Type": "text/uri-list",
+          }),
+          body: `${baseUrl}/submission/workspaceitems/${itemId}`,
+        })
+          .then(async (res) => {
+            console.log("Prepare to Delete tmp Folder...");
+            return res.ok ? console.log("Uploaded!") : console.log(res.status);
+          })
+          .finally(() => {
+            try {
+              if (process.platform === "win32") {
+                rimraf.windowsSync(`./tmp/${individualData.npm}`);
+              } else if (process.platform === "linux") {
+                rimrafSync(`./tmp/${individualData.npm}`);
+              }
+
+              console.log("Temporary Folder Deleted!");
+            } catch (error) {
+              console.log("Error : " + error);
+            }
+          });
+      });
+    }, 10000);
   }
 }
 
-export { postMetadata, createWorkspaceItems, dummyObject };
+export { postMetadata, createWorkspaceItems };
