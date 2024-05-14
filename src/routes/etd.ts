@@ -1,6 +1,5 @@
 // Core Import
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 
 // Drizzle Import
 import { db } from "../database/drizzle";
@@ -8,20 +7,19 @@ import * as schema from "../database/schema";
 import { and, asc, count, eq, like } from "drizzle-orm";
 
 // Utils Import
-import { objFakultas } from "../utils";
+import { objFakultas } from "../utils/index";
 
 const api = new Hono();
-api.use("/api/*", cors());
 
 api.get("/", (c) => {
   return c.json({
-    apiName: "ETD Unpad API",
+    title: "ETD Unpad Harvesting API",
     developer: "Chrisna Adhi Pranoto",
     purposes: "Migrate Local Repository File to DSpace",
   });
 });
 
-api.get("/etd/individu/:npm", async (c) => {
+api.get("/individu/:npm", async (c) => {
   const npm = c.req.param("npm");
   let metadataList: Record<string, any> = [];
   let pembimbingList: Record<string, any> = [];
@@ -51,7 +49,7 @@ api.get("/etd/individu/:npm", async (c) => {
   });
 });
 
-api.get("etd/fakultas/:kode", async (c) => {
+api.get("/fakultas/:kode", async (c) => {
   const kode = c.req.param("kode");
   const page = c.req.query("page");
   const tahun = c.req.query("tahun");
@@ -109,11 +107,10 @@ api.get("etd/fakultas/:kode", async (c) => {
   });
 });
 
-api.get("etd/prodi/:kode", async (c) => {
+api.get("/prodi/:kode", async (c) => {
   const kode = c.req.param("kode");
   const page = c.req.query("page");
   const limit = c.req.query("limit");
-  const jenjang = c.req.query("jenjang");
 
   let results: Record<string, any> = [];
   const numberResults = await db
@@ -143,13 +140,30 @@ api.get("etd/prodi/:kode", async (c) => {
       .offset(Number(page))
       .orderBy(asc(schema.aEtdMetadata.npm));
   } else {
-    console.log(results);
+    results = await db
+      .select({
+        npm: schema.aEtdMetadata.npm,
+        author: schema.aEtdMetadata.author,
+        jenjang: schema.aEtdMetadata.jenjang,
+        jenis: schema.aEtdMetadata.jenis,
+        kodeProdi: schema.aEtdMetadata.kodeProdi,
+        prodi: schema.aEtdMetadata.programStudi,
+        fakultas: schema.aEtdMetadata.fakultas,
+        status: schema.aEtdMetadata.status,
+        tahun: schema.aEtdMetadata.tahun,
+      })
+      .from(schema.aEtdMetadata)
+      .where(and(eq(schema.aEtdMetadata.kodeProdi, kode)))
+      .limit(Number(10))
+      .offset(Number(0))
+      .orderBy(asc(schema.aEtdMetadata.npm));
   }
 
   return c.json({
-    jenjang: results[0].jenjang,
+    jenjang: results[0]?.jenjang,
+    prodi: results[0]?.prodi,
     fakultas: fakultas?.namaFakultas,
-    total: numberResults[0].count,
+    totalData: numberResults[0].count,
     page,
     limit,
     results: results?.length > 0 ? results : "Not Found",
