@@ -140,13 +140,30 @@ api.get("/prodi/:kode", async (c) => {
       .offset(Number(page))
       .orderBy(asc(schema.aEtdMetadata.npm));
   } else {
-    console.log(results);
+    results = await db
+      .select({
+        npm: schema.aEtdMetadata.npm,
+        author: schema.aEtdMetadata.author,
+        jenjang: schema.aEtdMetadata.jenjang,
+        jenis: schema.aEtdMetadata.jenis,
+        kodeProdi: schema.aEtdMetadata.kodeProdi,
+        prodi: schema.aEtdMetadata.programStudi,
+        fakultas: schema.aEtdMetadata.fakultas,
+        status: schema.aEtdMetadata.status,
+        tahun: schema.aEtdMetadata.tahun,
+      })
+      .from(schema.aEtdMetadata)
+      .where(and(eq(schema.aEtdMetadata.kodeProdi, kode)))
+      .limit(Number(10))
+      .offset(Number(0))
+      .orderBy(asc(schema.aEtdMetadata.npm));
   }
 
   return c.json({
     jenjang: results[0]?.jenjang,
+    prodi: results[0]?.prodi,
     fakultas: fakultas?.namaFakultas,
-    total: numberResults[0].count,
+    totalData: numberResults[0].count,
     page,
     limit,
     results: results?.length > 0 ? results : "Not Found",
