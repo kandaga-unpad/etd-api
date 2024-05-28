@@ -6,9 +6,14 @@ import fs from "node:fs";
 import { jenjang } from "../utils/jenjang";
 import { BlankInput } from "hono/types";
 
+type Variables = {
+  dspace: string;
+  token: string;
+};
+
 const baseUrl = process.env.DSPACE_URL as string;
 
-const api = new Hono();
+const api = new Hono<{ Variables: Variables }>();
 
 api.get("/", async (c) => {
   const fetchServerToken = await fetch(baseUrl);
@@ -22,22 +27,19 @@ api.get("/", async (c) => {
 });
 
 api
-  .use(async (c, next) => {
-    const tryLogin = await loginDspace(c);
-
-    //@ts-expect-error
-    c.set("dspace", tryLogin?.dspaceCookie);
-    //@ts-expect-error
-    c.set("token", tryLogin?.dspaceToken);
-
+  .use("/login", async (c, next) => {
+    await loginDspace(c).then(async (res) => {
+      c.set("dspace", res?.dspaceCookie as string);
+      c.set("token", res?.dspaceToken as string);
+    });
     await next();
   })
   .get("/login", async (c) => {
-    const cookie = getCookie(c);
-
     return c.json({
+      apiName: "Unggah Mandiri ETD Unpad",
       status: "logged in",
-      cookie,
+      description:
+        "please check at /api/unggah-mandiri/status for your JWT Token",
     });
   });
 
@@ -62,7 +64,6 @@ api.get("/status", async (c) => {
     c.status(200);
     return c.json({
       apiName: "Unggah Mandiri ETD Unpad",
-      developer: "Chrisna Adhi Pranoto",
       authenticated: checkAuth.authenticated,
       cookie: cookie.newdspace,
       token: cookie.token,
@@ -71,7 +72,8 @@ api.get("/status", async (c) => {
     c.status(403);
     return c.json({
       status: 403,
-      msg: "Not Authenticated! Resend your Request to get your JWT Token.",
+      message:
+        "Not Authenticated! Resend your Request to login path to get your JWT Token.",
     });
   }
 });
